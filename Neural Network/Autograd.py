@@ -41,7 +41,7 @@ model = nn.Sequential(nn.Linear(number_input, number_hidden_1),
 criterion = nn.NLLLoss()
 optimizer = optim.SGD(model.parameters(), lr = 0.003)
 
-epochs = 20
+epochs = 5
 
 for e in range(epochs):
 	running_loss = 0
@@ -58,3 +58,11 @@ for e in range(epochs):
 		running_loss += loss.item()
 	else:
 		print(f"Training loss: {running_loss/len(trainloader)}")
+
+images, labels = next(iter(trainloader))
+images = images[0].view(1, 784)
+with torch.no_grad():
+	logits = model.forward(images)
+
+Prob = F.softmax(logits, dim = 1)
+helper.view_classify(images.view(1, 28, 28), Prob)
