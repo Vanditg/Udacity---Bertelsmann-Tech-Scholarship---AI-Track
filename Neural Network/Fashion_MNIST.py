@@ -16,7 +16,7 @@ from torch import optim
 
 #Downloading MNIST data	
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-trainset = datasets.MNIST('MNIST_data/', download=True, train=True, transform=transform)
+trainset = datasets.FashionMNIST('Fashio_MNIST_data/', download=True, train=True, transform=transform)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size = 64, shuffle = True)
 dataiter = iter(trainloader)
 images, labels = dataiter.next()
@@ -26,22 +26,45 @@ print(labels.shape)
 
 #Defining input, hidden and output units for network 
 number_input = 784
-number_hidden_1 = 128
-number_hidden_2 = 64
+number_hidden_1 = 256
+number_hidden_2 = 128
+number_hidden_3 = 64
+number_hidden_4 = 32
 number_output = 10
 
-#Building sequential model using logsoftmax and setting criterion to NLL loss. 
-model = nn.Sequential(nn.Linear(number_input, number_hidden_1), 
-                      nn.ReLU(), 
-                      nn.Linear(number_hidden_1, number_hidden_2),
-                      nn.ReLU(), 
-                      nn.Linear(number_hidden_2, number_output), 
-					  nn.LogSoftmax(dim = 1))
+class NN(nn.Module):
+	def __init__(self):
+		super().__init__()
+		
+		self.output = nn.Linear(number_input, number_hidden_1)
+		self.new_output = nn.Linear(number_hidden_1, number_hidden_2)
+		self.new_final_output = nn.Linear(number_hidden_2, number_hidden_3)
+		self.new_final_last_output = nn.Linear(number_hidden_3, number_hidden_4)
+		self.new_final_last_fashion_output = nn.Linear(number_hidden_4, number_output)
+		self.relu = nn.ReLU()
+		self.softmax = nn.Softmax(dim = 1)
+	
+	def forward(self, x):
+		x = self.output(x)
+		x = self.relu(x)
+		x = self.new_output(x)
+		x = self.relu(x)
+		x = self.new_final_output(x)
+		x = self.relu(x)
+		x = self.new_final_last_output(x)
+		x = self.relu(x)
+		x = self.new_final_last_fashion_output(x)
+		x = self.softmax(x)
+		
+		return x
 
-criterion = nn.NLLLoss()
+model = NN()
+print(model)
+
+criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr = 0.003)
 
-epochs = 5
+epochs = 25
 
 for e in range(epochs):
 	running_loss = 0
